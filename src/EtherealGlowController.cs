@@ -96,13 +96,15 @@ internal static class EtherealGlowController
     private static ColorRect AttachGlow(NCard card, GlowConfig config)
     {
         Control body = card.Body;
-        Vector2 cardSize = body.Size != Vector2.Zero ? body.Size : NCard.defaultSize;
+        Vector2 reference = body.Size != Vector2.Zero ? body.Size : NCard.defaultSize;
+        float aspect = reference.Y > 0.0f ? reference.X / reference.Y : 0.72f;
 
-        ColorRect glow = SmokyGlowVisual.Create(cardSize, config);
+        ColorRect glow = SmokyGlowVisual.Create(aspect, config);
+
+        // Appended last, so it draws above the card art and text. The game's own rarity glows
+        // sit at index 1 instead, which is *behind* the art - fine for a halo that only shows
+        // outside the card silhouette, but useless for an overlay.
         body.AddChildSafely(glow);
-        // Sit just above the card background but below the art and text, exactly where the
-        // game puts its own rarity glows.
-        body.MoveChildSafely(glow, 1);
 
         // AddChildSafely may defer, so only start the tween once the node is actually in the tree.
         Callable.From(() =>

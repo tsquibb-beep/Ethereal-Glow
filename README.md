@@ -25,12 +25,20 @@ overwrites an existing config.
 | Key | Default | Meaning |
 | --- | --- | --- |
 | `enabled` | `true` | Master switch. |
-| `color` | `"#8fd4ff"` | Smoke colour, any Godot-parsable hex. |
-| `intensity` | `1.0` | Opacity multiplier. `0` is invisible. |
-| `speed` | `0.35` | How fast the smoke churns. `0` freezes it. |
-| `margin` | `0.35` | How far the halo bleeds past the card edge, as a fraction of card size. |
-| `bandWidth` | `0.3` | Thickness of the smoke band hugging the edge. |
+| `color` | `"#b8e8ff"` | Smoke colour, any Godot-parsable hex. |
+| `rimColor` | `"#dde4ea"` | Colour of the shimmering border. |
+| `intensity` | `1.0` | Overall opacity multiplier. `0` is invisible. |
+| `speed` | `0.35` | How fast the smoke churns and the shimmer travels. `0` freezes both. |
+| `veilStrength` | `0.5` | Smoke banked against the inside of the card edge. |
+| `hazeStrength` | `0.1` | Light haze across the whole card face. Keep low so the art stays readable. |
+| `rimStrength` | `1.0` | Brightness of the border. |
+| `rimWidth` | `0.018` | Border thickness, as a fraction of card height. |
+| `edgeDepth` | `0.16` | How far the edge smoke reaches inward, as a fraction of card height. |
+| `cornerRadius` | `0.05` | Corner rounding of the border, as a fraction of card height. |
 | `fadeInSeconds` | `0.35` | Fade-in time when a card becomes Ethereal. |
+
+To make the effect louder, raise `rimStrength` and `veilStrength` first; `intensity` scales
+everything at once.
 
 A bad or missing config falls back to these defaults rather than failing to load.
 
@@ -46,9 +54,14 @@ of `NCard.Body`, so this mod follows that pattern rather than inventing its own.
   accounts for globally-granted keywords and other mods' `ModifyKeywordsInCombat` hooks.
   The mod also subscribes to `CardModel.KeywordsChanged`, so cards that gain or lose Ethereal
   mid-combat (Sculpting Strike, Void Form, Hexed) update immediately.
-- **The effect** — one `ColorRect` with a runtime-compiled canvas shader: domain-warped fbm
-  noise, masked to a band straddling the card edge, additively blended and slowly pulsing.
-  No texture or `.pck` assets, so nothing breaks when Mega Crit moves art around.
+- **The effect** — one `ColorRect` stretched over the card with a runtime-compiled shader:
+  domain-warped fbm smoke banked against the inside of the card edge, plus a shimmering rim
+  tracing a rounded-rectangle SDF around the silhouette. No texture or `.pck` assets, so
+  nothing breaks when Mega Crit moves art around.
+- **Draw order** — the overlay is appended as the *last* child of `NCard.Body` so it draws
+  above the card art. The game's own rarity glows sit at index 1, which is *behind* the art:
+  fine for a halo that only shows outside the card, useless for an overlay. The node is also
+  anchored to the card body's full rect, so it never spills onto adjacent tooltips.
 - **Pooling** — `NCard` instances are recycled, so glow state lives in a
   `ConditionalWeakTable` keyed by the node and is released explicitly on pool free.
 

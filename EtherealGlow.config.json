@@ -1,9 +1,14 @@
 {
     "enabled": true,
-    "color": "#8fd4ff",
+    "color": "#b8e8ff",
+    "rimColor": "#dde4ea",
     "intensity": 1.0,
     "speed": 0.35,
-    "margin": 0.35,
-    "bandWidth": 0.3,
+    "veilStrength": 0.5,
+    "hazeStrength": 0.1,
+    "rimStrength": 1.0,
+    "rimWidth": 0.018,
+    "edgeDepth": 0.16,
+    "cornerRadius": 0.05,
     "fadeInSeconds": 0.35
 }

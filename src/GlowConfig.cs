@@ -18,25 +18,45 @@ internal sealed class GlowConfig
     [JsonPropertyName("enabled")]
     public bool Enabled { get; set; } = true;
 
-    /// <summary>Hex colour of the smoke, e.g. "#8fd4ff".</summary>
+    /// <summary>Hex colour of the smoke, e.g. "#b8e8ff".</summary>
     [JsonPropertyName("color")]
-    public string Color { get; set; } = "#8fd4ff";
+    public string ColorHex { get; set; } = "#b8e8ff";
+
+    /// <summary>Hex colour of the shimmering border.</summary>
+    [JsonPropertyName("rimColor")]
+    public string RimColorHex { get; set; } = "#dde4ea";
 
     /// <summary>Overall opacity multiplier. 0 is invisible, 1 is the designed strength.</summary>
     [JsonPropertyName("intensity")]
     public float Intensity { get; set; } = 1.0f;
 
-    /// <summary>How fast the smoke churns, in arbitrary units. 0 freezes it.</summary>
+    /// <summary>How fast the smoke churns and the rim shimmer travels. 0 freezes both.</summary>
     [JsonPropertyName("speed")]
     public float Speed { get; set; } = 0.35f;
 
-    /// <summary>How far the halo bleeds past the card edge, as a fraction of card size.</summary>
-    [JsonPropertyName("margin")]
-    public float Margin { get; set; } = 0.35f;
+    /// <summary>Strength of the smoke banked against the inside of the card edge.</summary>
+    [JsonPropertyName("veilStrength")]
+    public float VeilStrength { get; set; } = 0.5f;
 
-    /// <summary>Thickness of the smoke band hugging the card edge, in UV units.</summary>
-    [JsonPropertyName("bandWidth")]
-    public float BandWidth { get; set; } = 0.3f;
+    /// <summary>Strength of the light haze across the whole card face. Keep low so art stays readable.</summary>
+    [JsonPropertyName("hazeStrength")]
+    public float HazeStrength { get; set; } = 0.1f;
+
+    /// <summary>Brightness of the shimmering border.</summary>
+    [JsonPropertyName("rimStrength")]
+    public float RimStrength { get; set; } = 1.0f;
+
+    /// <summary>Border thickness, as a fraction of card height.</summary>
+    [JsonPropertyName("rimWidth")]
+    public float RimWidth { get; set; } = 0.018f;
+
+    /// <summary>How far the edge smoke reaches inward, as a fraction of card height.</summary>
+    [JsonPropertyName("edgeDepth")]
+    public float EdgeDepth { get; set; } = 0.16f;
+
+    /// <summary>Corner rounding of the border, as a fraction of card height.</summary>
+    [JsonPropertyName("cornerRadius")]
+    public float CornerRadius { get; set; } = 0.05f;
 
     [JsonPropertyName("fadeInSeconds")]
     public float FadeInSeconds { get; set; } = 0.35f;
@@ -45,19 +65,20 @@ internal sealed class GlowConfig
 
     public static GlowConfig Current => _current ??= Load();
 
-    public Color SmokeColor
+    public Color SmokeColor => ParseColor(ColorHex, "#b8e8ff");
+
+    public Color RimColor => ParseColor(RimColorHex, "#dde4ea");
+
+    private static Color ParseColor(string value, string fallback)
     {
-        get
+        try
         {
-            try
-            {
-                return new Color(Color);
-            }
-            catch (Exception)
-            {
-                Log.Warn($"[EtherealGlow] '{Color}' is not a valid colour, falling back to #8fd4ff.");
-                return new Color("#8fd4ff");
-            }
+            return new Color(value);
+        }
+        catch (Exception)
+        {
+            Log.Warn($"[EtherealGlow] '{value}' is not a valid colour, falling back to {fallback}.");
+            return new Color(fallback);
         }
     }
 

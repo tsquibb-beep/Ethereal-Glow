@@ -3,7 +3,7 @@
     "name": "Ethereal Glow",
     "author": "Tomasapan",
     "description": "Adds a smoky glow overlay to Ethereal cards so they are easy to spot at a glance.",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "has_pck": false,
     "has_dll": true,
     "dependencies": [],

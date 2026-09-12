@@ -22,7 +22,7 @@ internal static class EtherealGlowMod
             new Harmony(HarmonyId).PatchAll(Assembly.GetExecutingAssembly());
 
             GlowConfig config = GlowConfig.Current;
-            Log.Info($"[EtherealGlow] Initialised (enabled={config.Enabled}, colour={config.Color}, intensity={config.Intensity}).");
+            Log.Info($"[EtherealGlow] Initialised (enabled={config.Enabled}, colour={config.ColorHex}, intensity={config.Intensity}).");
         }
         catch (Exception ex)
         {
