@@ -31,6 +31,7 @@ uniform float rim_strength = 1.0;
 uniform float rim_width = 0.018;
 uniform float edge_depth = 0.16;
 uniform float corner_radius = 0.05;
+uniform float blur = 0.003;
 uniform float aspect = 0.72;
 
 float hash(vec2 p) {
@@ -59,6 +60,13 @@ float fbm(vec2 p) {
     return v;
 }
 
+// One sample of the churning smoke field. Split out so it can be multi-tapped for the blur;
+// the domain warp is computed once by the caller since it is low-frequency enough not to
+// need blurring itself.
+float smoke_field(vec2 uv, vec2 warp, float t) {
+    return fbm(uv * 4.0 + warp * 1.6 + vec2(0.0, -t * 1.3));
+}
+
 // Signed distance to a rounded box: negative inside, zero on the outline.
 float sd_round_box(vec2 p, vec2 b, float r) {
     vec2 q = abs(p) - b + vec2(r);
@@ -77,7 +85,21 @@ void fragment() {
         fbm(UV * 3.0 + vec2(0.0, -t)),
         fbm(UV * 3.0 + vec2(t * 0.5, 0.3))
     );
-    float smoke = fbm(UV * 4.0 + warp * 1.6 + vec2(0.0, -t * 1.3));
+    // Small tent-weighted blur of the noise field, so the contrast push below feathers the
+    // wisp edges instead of cutting them hard. Offsets are corrected by aspect so the blur is
+    // isotropic on screen rather than stretched across the card's width.
+    float smoke;
+    if (blur > 0.0001) {
+        vec2 b = vec2(blur / max(aspect, 0.001), blur);
+        smoke  = smoke_field(UV, warp, t) * 0.4;
+        smoke += smoke_field(UV + vec2( b.x,  b.y), warp, t) * 0.15;
+        smoke += smoke_field(UV + vec2(-b.x,  b.y), warp, t) * 0.15;
+        smoke += smoke_field(UV + vec2( b.x, -b.y), warp, t) * 0.15;
+        smoke += smoke_field(UV + vec2(-b.x, -b.y), warp, t) * 0.15;
+    } else {
+        smoke = smoke_field(UV, warp, t);
+    }
+
     // Push the contrast up so it reads as distinct wisps, not flat fog.
     smoke = smoothstep(0.25, 0.95, smoke);
 
@@ -121,6 +143,7 @@ void fragment() {
         material.SetShaderParameter("rim_width", Mathf.Clamp(config.RimWidth, 0.001f, 0.5f));
         material.SetShaderParameter("edge_depth", Mathf.Clamp(config.EdgeDepth, 0.01f, 1.0f));
         material.SetShaderParameter("corner_radius", Mathf.Clamp(config.CornerRadius, 0.0f, 0.5f));
+        material.SetShaderParameter("blur", Mathf.Clamp(config.Blur, 0.0f, 0.1f));
         material.SetShaderParameter("aspect", 0.711f);
 
         // The rect is assigned explicitly by the caller rather than anchored to the parent:

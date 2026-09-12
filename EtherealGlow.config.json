@@ -10,5 +10,6 @@
     "rimWidth": 0.018,
     "edgeDepth": 0.16,
     "cornerRadius": 0.05,
+    "blur": 0.003,
     "fadeInSeconds": 0.35
 }

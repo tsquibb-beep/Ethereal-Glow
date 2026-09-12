@@ -58,6 +58,13 @@ internal sealed class GlowConfig
     [JsonPropertyName("cornerRadius")]
     public float CornerRadius { get; set; } = 0.05f;
 
+    /// <summary>
+    /// Softens the smoke's edges, as a fraction of card height. Roughly a Gaussian blur radius:
+    /// 0.003 is about 1px on a standard card. 0 disables the blur (and its extra shader taps).
+    /// </summary>
+    [JsonPropertyName("blur")]
+    public float Blur { get; set; } = 0.003f;
+
     [JsonPropertyName("fadeInSeconds")]
     public float FadeInSeconds { get; set; } = 0.35f;
 

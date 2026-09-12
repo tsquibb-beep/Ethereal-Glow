@@ -35,10 +35,12 @@ overwrites an existing config.
 | `rimWidth` | `0.018` | Border thickness, as a fraction of card height. |
 | `edgeDepth` | `0.16` | How far the edge smoke reaches inward, as a fraction of card height. |
 | `cornerRadius` | `0.05` | Corner rounding of the border, as a fraction of card height. |
+| `blur` | `0.003` | Softens the smoke's edges, as a fraction of card height (~1px on a standard card). `0` disables it. |
 | `fadeInSeconds` | `0.35` | Fade-in time when a card becomes Ethereal. |
 
 To make the effect louder, raise `rimStrength` and `veilStrength` first; `intensity` scales
-everything at once.
+everything at once. For softer, wispier smoke raise `blur` — it costs four extra shader taps,
+so set it to `0` to skip the blur entirely.
 
 A bad or missing config falls back to these defaults rather than failing to load.
 
@@ -55,8 +57,9 @@ of `NCard.Body`, so this mod follows that pattern rather than inventing its own.
   The mod also subscribes to `CardModel.KeywordsChanged`, so cards that gain or lose Ethereal
   mid-combat (Sculpting Strike, Void Form, Hexed) update immediately.
 - **The effect** — one `ColorRect` stretched over the card with a runtime-compiled shader:
-  domain-warped fbm smoke banked against the inside of the card edge, plus a shimmering rim
-  tracing a rounded-rectangle SDF around the silhouette. No texture or `.pck` assets, so
+  domain-warped fbm smoke banked against the inside of the card edge, tent-blurred before the
+  contrast push so the wisps feather rather than cut hard, plus a shimmering rim tracing a
+  rounded-rectangle SDF around the silhouette. No texture or `.pck` assets, so
   nothing breaks when Mega Crit moves art around.
 - **Draw order** — the overlay is appended as the *last* child of `NCard.Body` so it draws
   above the card art. The game's own rarity glows sit at index 1, which is *behind* the art:
