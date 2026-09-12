@@ -1,0 +1,9 @@
+{
+    "enabled": true,
+    "color": "#8fd4ff",
+    "intensity": 1.0,
+    "speed": 0.35,
+    "margin": 0.35,
+    "bandWidth": 0.3,
+    "fadeInSeconds": 0.35
+}
