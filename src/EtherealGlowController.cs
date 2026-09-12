@@ -26,6 +26,9 @@ internal static class EtherealGlowController
 
     private static readonly ConditionalWeakTable<NCard, Entry> _entries = new();
 
+    /// <summary>One-shot diagnostic: makes an invisible overlay debuggable from the game log.</summary>
+    private static bool _loggedAttach;
+
     /// <summary>
     /// Re-evaluates whether <paramref name="card"/> should be wearing a halo. Cheap enough to
     /// call from every visual refresh; creates and destroys nodes only on an actual change.
@@ -54,6 +57,12 @@ internal static class EtherealGlowController
             if (wantGlow && !hasGlow)
             {
                 entry.Glow = AttachGlow(card, config);
+            }
+            else if (wantGlow)
+            {
+                // Self-healing: if Control layout had not settled when the overlay was created,
+                // this picks up the real rect on the next visual refresh.
+                SyncRect(card, card.Body, entry.Glow!);
             }
             else if (!wantGlow && hasGlow)
             {
@@ -96,26 +105,74 @@ internal static class EtherealGlowController
     private static ColorRect AttachGlow(NCard card, GlowConfig config)
     {
         Control body = card.Body;
-        Vector2 reference = body.Size != Vector2.Zero ? body.Size : NCard.defaultSize;
-        float aspect = reference.Y > 0.0f ? reference.X / reference.Y : 0.72f;
+        ColorRect glow = SmokyGlowVisual.Create(config);
+        SyncRect(card, body, glow);
 
-        ColorRect glow = SmokyGlowVisual.Create(aspect, config);
-
-        // Appended last, so it draws above the card art and text. The game's own rarity glows
-        // sit at index 1 instead, which is *behind* the art - fine for a halo that only shows
-        // outside the card silhouette, but useless for an overlay.
+        // Appended last, so it draws above the card art. The game's own rarity glows sit at
+        // index 1 instead, which is *behind* the art - fine for a halo that only shows outside
+        // the card silhouette, useless for an overlay.
         body.AddChildSafely(glow);
 
-        // AddChildSafely may defer, so only start the tween once the node is actually in the tree.
+        // AddChildSafely may defer, and Control layout may not have settled yet, so re-sync
+        // and start the tween once the node is actually in the tree.
         Callable.From(() =>
         {
-            if (GodotObject.IsInstanceValid(glow) && glow.IsInsideTree())
+            if (!GodotObject.IsInstanceValid(glow) || !glow.IsInsideTree() || !GodotObject.IsInstanceValid(card))
             {
-                SmokyGlowVisual.FadeIn(glow, config);
+                return;
             }
+
+            SyncRect(card, card.Body, glow);
+            SmokyGlowVisual.FadeIn(glow, config);
         }).CallDeferred();
 
         return glow;
+    }
+
+    /// <summary>
+    /// Matches the overlay to the card's real on-screen rect.
+    ///
+    /// The card's position and size inside Body are not documented and must not be guessed:
+    /// this reads the game's own frame node ("%Frame", the card border art) and maps its
+    /// corners into Body's local space, so the overlay lines up whatever the scene does and
+    /// adapts if card dimensions change. Falls back to NCard.defaultSize at the origin only
+    /// if the frame cannot be measured yet.
+    /// </summary>
+    private static void SyncRect(NCard card, Control body, ColorRect glow)
+    {
+        Vector2 position = Vector2.Zero;
+        Vector2 size = NCard.defaultSize;
+        bool measured = false;
+
+        Control? frame = card.GetNodeOrNull<Control>("%Frame");
+        if (frame != null && GodotObject.IsInstanceValid(frame) && frame.Size.X > 1.0f && frame.Size.Y > 1.0f)
+        {
+            Transform2D toBody = body.GetGlobalTransform().AffineInverse();
+            Transform2D frameTransform = frame.GetGlobalTransform();
+            Vector2 topLeft = toBody * (frameTransform * Vector2.Zero);
+            Vector2 bottomRight = toBody * (frameTransform * frame.Size);
+
+            Vector2 measuredSize = bottomRight - topLeft;
+            if (measuredSize.X > 1.0f && measuredSize.Y > 1.0f)
+            {
+                position = topLeft;
+                size = measuredSize;
+                measured = true;
+            }
+        }
+
+        if (glow.Position != position || glow.Size != size)
+        {
+            glow.Position = position;
+            glow.Size = size;
+            SmokyGlowVisual.SetAspect(glow, size);
+        }
+
+        if (!_loggedAttach)
+        {
+            _loggedAttach = true;
+            Log.Info($"[EtherealGlow] First glow rect: pos={position}, size={size}, measured={measured}, body.Size={body.Size}.");
+        }
     }
 
     private static void Resubscribe(NCard card, Entry entry, CardModel? model)

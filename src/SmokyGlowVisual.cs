@@ -12,7 +12,7 @@ namespace EtherealGlow;
 /// here is either set imperatively or animated by TIME inside the shader.
 ///
 /// The shader works in normalised card space (corrected by an aspect uniform) rather than
-/// pixels, so the node can be anchored to fill its parent and never needs resizing.
+/// pixels, so the node only needs its rect set once at creation.
 /// </summary>
 internal static class SmokyGlowVisual
 {
@@ -105,10 +105,10 @@ void fragment() {
     private static Shader Shader => _shader ??= new Shader { Code = ShaderCode };
 
     /// <summary>
-    /// Creates the overlay. The caller is expected to add it as the last child of the card body
-    /// so it draws above the card art; it anchors itself to fill that parent.
+    /// Creates the overlay. The caller sets its rect via <see cref="SetAspect"/> and by
+    /// assigning Position/Size, then adds it as the last child of the card body.
     /// </summary>
-    public static ColorRect Create(float aspect, GlowConfig config)
+    public static ColorRect Create(GlowConfig config)
     {
         var material = new ShaderMaterial { Shader = Shader };
         material.SetShaderParameter("smoke_color", config.SmokeColor);
@@ -121,9 +121,12 @@ void fragment() {
         material.SetShaderParameter("rim_width", Mathf.Clamp(config.RimWidth, 0.001f, 0.5f));
         material.SetShaderParameter("edge_depth", Mathf.Clamp(config.EdgeDepth, 0.01f, 1.0f));
         material.SetShaderParameter("corner_radius", Mathf.Clamp(config.CornerRadius, 0.0f, 0.5f));
-        material.SetShaderParameter("aspect", aspect);
+        material.SetShaderParameter("aspect", 0.711f);
 
-        var rect = new ColorRect
+        // The rect is assigned explicitly by the caller rather than anchored to the parent:
+        // SetAnchorsPreset keeps the control's existing rect, which for a freshly built node
+        // is 0x0 - it anchors correctly and then renders nothing at all.
+        return new ColorRect
         {
             Name = "EtherealGlow",
             Material = material,
@@ -131,11 +134,15 @@ void fragment() {
             MouseFilter = Control.MouseFilterEnum.Ignore,
             Modulate = new Color(1, 1, 1, 0),
         };
+    }
 
-        // Track the card body's rect for the node's whole life, so nothing needs a _Process.
-        rect.SetAnchorsPreset(Control.LayoutPreset.FullRect);
-
-        return rect;
+    /// <summary>Keeps the shader's aspect correction in step with the node's rect.</summary>
+    public static void SetAspect(ColorRect rect, Vector2 size)
+    {
+        if (rect.Material is ShaderMaterial material && size.Y > 0.0f)
+        {
+            material.SetShaderParameter("aspect", size.X / size.Y);
+        }
     }
 
     /// <summary>Fades the overlay in. Only valid once the node is inside the tree.</summary>
