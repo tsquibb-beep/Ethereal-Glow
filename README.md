@@ -35,6 +35,8 @@ overwrites an existing config.
 | `rimWidth` | `0.018` | Border thickness, as a fraction of card height. |
 | `edgeDepth` | `0.16` | How far the edge smoke reaches inward, as a fraction of card height. |
 | `cornerRadius` | `0.05` | Corner rounding of the border, as a fraction of card height. |
+| `recolorHighlight` | `true` | Replace the game's cyan card highlight with `highlightColor` on Ethereal cards. |
+| `highlightColor` | `"#b9c6d0"` | Colour replacing that cyan. |
 | `blur` | `0.003` | Softens the smoke's edges, as a fraction of card height (~1px on a standard card). `0` disables it. |
 | `fadeInSeconds` | `0.35` | Fade-in time when a card becomes Ethereal. |
 
@@ -65,6 +67,10 @@ of `NCard.Body`, so this mod follows that pattern rather than inventing its own.
   above the card art. The game's own rarity glows sit at index 1, which is *behind* the art:
   fine for a halo that only shows outside the card, useless for an overlay. The node is also
   anchored to the card body's full rect, so it never spills onto adjacent tooltips.
+- **The card highlight** — the cyan outline the game draws around playable cards is its own
+  `NCardHighlight`, coloured in `NHandCardHolder.UpdateCard`. A postfix there repaints it for
+  Ethereal cards. Only the plain cyan is replaced: the red (cannot play) and gold states carry
+  information the player needs, so cards in those states keep the game's colour.
 - **Pooling** — `NCard` instances are recycled, so glow state lives in a
   `ConditionalWeakTable` keyed by the node and is released explicitly on pool free.
 

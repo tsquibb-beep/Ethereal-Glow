@@ -58,6 +58,14 @@ internal sealed class GlowConfig
     [JsonPropertyName("cornerRadius")]
     public float CornerRadius { get; set; } = 0.05f;
 
+    /// <summary>Replace the game's cyan card highlight with <see cref="HighlightColorHex"/>.</summary>
+    [JsonPropertyName("recolorHighlight")]
+    public bool RecolorHighlight { get; set; } = true;
+
+    /// <summary>Hex colour replacing the game's cyan highlight on Ethereal cards.</summary>
+    [JsonPropertyName("highlightColor")]
+    public string HighlightColorHex { get; set; } = "#b9c6d0";
+
     /// <summary>
     /// Softens the smoke's edges, as a fraction of card height. Roughly a Gaussian blur radius:
     /// 0.003 is about 1px on a standard card. 0 disables the blur (and its extra shader taps).
@@ -75,6 +83,8 @@ internal sealed class GlowConfig
     public Color SmokeColor => ParseColor(ColorHex, "#b8e8ff");
 
     public Color RimColor => ParseColor(RimColorHex, "#dde4ea");
+
+    public Color HighlightColor => ParseColor(HighlightColorHex, "#b9c6d0");
 
     private static Color ParseColor(string value, string fallback)
     {

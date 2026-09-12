@@ -77,6 +77,54 @@ internal static class EtherealGlowController
         }
     }
 
+    /// <summary>
+    /// Repaints the game's cyan "playable" highlight in the Ethereal colour.
+    ///
+    /// Only the plain playable colour is replaced: red (cannot play / warning) and gold both
+    /// carry information the player needs, so cards in those states keep the game's colour.
+    /// No cleanup is needed when a card stops being Ethereal, because UpdateCard reassigns the
+    /// stock colour every time before this runs.
+    /// </summary>
+    public static void RecolorHighlight(NCard? card)
+    {
+        GlowConfig config = GlowConfig.Current;
+        if (!config.Enabled || !config.RecolorHighlight)
+        {
+            return;
+        }
+
+        if (card == null || !GodotObject.IsInstanceValid(card) || !card.IsNodeReady())
+        {
+            return;
+        }
+
+        try
+        {
+            CardModel? model = card.Model;
+            if (model == null || !model.Keywords.Contains(CardKeyword.Ethereal))
+            {
+                return;
+            }
+
+            NCardHighlight highlight = card.CardHighlight;
+            if (highlight == null || !GodotObject.IsInstanceValid(highlight))
+            {
+                return;
+            }
+
+            if (!highlight.Modulate.IsEqualApprox(NCardHighlight.playableColor))
+            {
+                return;
+            }
+
+            highlight.Modulate = config.HighlightColor;
+        }
+        catch (Exception ex)
+        {
+            Log.Error($"[EtherealGlow] Failed to recolour highlight: {ex}");
+        }
+    }
+
     /// <summary>Drops all state for a card being recycled by the node pool.</summary>
     public static void Release(NCard? card)
     {
