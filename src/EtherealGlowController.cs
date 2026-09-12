@@ -127,7 +127,21 @@ internal static class EtherealGlowController
 
         // Ethereal can be granted or stripped mid-combat (Sculpting Strike, Void Form, Hexed),
         // and that fires no visual refresh of its own.
-        Action handler = () => Refresh(card);
+        //
+        // The handler detaches itself if the card node has been freed without passing through
+        // the pool, since models outlive card views and would otherwise keep calling into a
+        // dead node forever.
+        Action? handler = null;
+        handler = () =>
+        {
+            if (!GodotObject.IsInstanceValid(card))
+            {
+                model.KeywordsChanged -= handler;
+                return;
+            }
+
+            Refresh(card);
+        };
         model.KeywordsChanged += handler;
 
         entry.SubscribedModel = model;
