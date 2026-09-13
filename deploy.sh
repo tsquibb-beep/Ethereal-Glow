@@ -24,8 +24,15 @@ cp "$PROJECT_DIR/bin/Release/net9.0/$MOD_ID.dll" "$TARGET/"
 cp "$PROJECT_DIR/$MOD_ID.json" "$TARGET/"
 
 # Never clobber a config the player has already tuned.
-if [[ ! -f "$TARGET/$MOD_ID.config.json" ]]; then
-    cp "$PROJECT_DIR/$MOD_ID.config.json" "$TARGET/"
+if [[ ! -f "$TARGET/$MOD_ID.config.jsonc" ]]; then
+    cp "$PROJECT_DIR/$MOD_ID.config.jsonc" "$TARGET/"
+fi
+
+# The game parses every *.json under mods/ as a manifest, so the old config name
+# logs an error on every launch. Retire it once its replacement is in place.
+if [[ -f "$TARGET/$MOD_ID.config.json" && -f "$TARGET/$MOD_ID.config.jsonc" ]]; then
+    rm -f "$TARGET/$MOD_ID.config.json"
+    echo "Removed the superseded $MOD_ID.config.json (settings now live in .jsonc)"
 fi
 
 echo "Installed $MOD_ID to $TARGET"

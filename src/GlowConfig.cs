@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text.Json;
@@ -106,36 +107,75 @@ internal sealed class GlowConfig
         }
     }
 
+    private const string FileName = "EtherealGlow.config.jsonc";
+
+    /// <summary>Legacy name, kept readable so existing installs do not lose their settings.</summary>
+    private const string LegacyFileName = "EtherealGlow.config.json";
+
+    private static readonly JsonSerializerOptions _jsonOptions = new()
+    {
+        ReadCommentHandling = JsonCommentHandling.Skip,
+        AllowTrailingCommas = true,
+    };
+
+    /// <summary>
+    /// Looks for the config next to the game's save data first, then beside the mod DLL.
+    ///
+    /// The save-data copy wins so that settings survive a Vortex update, which replaces the
+    /// whole mod folder. The file is .jsonc rather than .json deliberately: the game scans
+    /// mods/ recursively for *.json and tries to parse every one as a mod manifest, logging
+    /// an error for anything that is not one.
+    /// </summary>
     private static GlowConfig Load()
     {
-        string? dir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-        if (string.IsNullOrEmpty(dir))
+        foreach (string path in CandidatePaths())
         {
-            return new GlowConfig();
-        }
-
-        string path = Path.Combine(dir, "EtherealGlow.config.json");
-        if (!File.Exists(path))
-        {
-            Log.Info("[EtherealGlow] No config file found, using defaults.");
-            return new GlowConfig();
-        }
-
-        try
-        {
-            GlowConfig? loaded = JsonSerializer.Deserialize<GlowConfig>(File.ReadAllText(path));
-            if (loaded == null)
+            if (!File.Exists(path))
             {
-                return new GlowConfig();
+                continue;
             }
 
-            Log.Info($"[EtherealGlow] Loaded config from {path}.");
-            return loaded;
+            try
+            {
+                GlowConfig? loaded = JsonSerializer.Deserialize<GlowConfig>(File.ReadAllText(path), _jsonOptions);
+                if (loaded != null)
+                {
+                    Log.Info($"[EtherealGlow] Loaded config from {path}.");
+                    return loaded;
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Warn($"[EtherealGlow] Could not read {path} ({ex.Message}), trying the next location.");
+            }
         }
-        catch (Exception ex)
+
+        Log.Info("[EtherealGlow] No config file found, using defaults.");
+        return new GlowConfig();
+    }
+
+    private static IEnumerable<string> CandidatePaths()
+    {
+        string? userDir = null;
+        try
         {
-            Log.Warn($"[EtherealGlow] Could not read {path} ({ex.Message}), using defaults.");
-            return new GlowConfig();
+            userDir = OS.GetUserDataDir();
+        }
+        catch (Exception)
+        {
+            // Not fatal: fall back to the mod folder.
+        }
+
+        if (!string.IsNullOrEmpty(userDir))
+        {
+            yield return Path.Combine(userDir, FileName);
+        }
+
+        string? modDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+        if (!string.IsNullOrEmpty(modDir))
+        {
+            yield return Path.Combine(modDir, FileName);
+            yield return Path.Combine(modDir, LegacyFileName);
         }
     }
 }

@@ -7,20 +7,30 @@ Purely cosmetic — no gameplay is touched (`affects_gameplay: false`).
 
 ## Install
 
+Through **Vortex**, or by hand: drop the `EtherealGlow` folder from the release archive into
+`<game>/mods/`, so you end up with `<game>/mods/EtherealGlow/EtherealGlow.dll`. Launch the game
+and accept the mod warning. To uninstall, delete that folder.
+
+Building from source instead:
+
 ```bash
 ./deploy.sh                                     # uses the default Steam library path
 ./deploy.sh "/path/to/Slay the Spire 2"         # or point it at your install
+./package.sh                                    # builds dist/EtherealGlow-<version>.zip for Nexus
 ```
-
-This builds `EtherealGlow.dll` and copies it, the manifest, and a default config into
-`<game>/mods/EtherealGlow/`. Launch the game and accept the mod warning.
-
-To uninstall, delete that folder.
 
 ## Configuration
 
-`mods/EtherealGlow/EtherealGlow.config.json` is read once at startup. `deploy.sh` never
-overwrites an existing config.
+Settings live in `EtherealGlow.config.jsonc`, read once at startup. Two locations are checked,
+in order:
+
+1. `%APPDATA%\SlayTheSpire2\EtherealGlow.config.jsonc` — **use this one.** It survives mod
+   updates, which replace the whole mod folder.
+2. `mods/EtherealGlow/EtherealGlow.config.jsonc` — the copy shipped with the mod.
+
+The file is `.jsonc` rather than `.json` because the game scans `mods/` recursively and tries
+to parse every `.json` it finds as a mod manifest, logging an error for anything that is not
+one. Comments and trailing commas are allowed.
 
 | Key | Default | Meaning |
 | --- | --- | --- |

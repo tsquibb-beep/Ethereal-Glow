@@ -1,0 +1,51 @@
+// Ethereal Glow — settings. Restart the game after editing.
+//
+// Copy this file to your save folder to keep your settings through mod updates:
+//   %APPDATA%\SlayTheSpire2\EtherealGlow.config.jsonc
+// That copy is read in preference to this one.
+{
+    // Master switch for the whole mod.
+    "enabled": true,
+
+    // Smoke colour, and the colour of the shimmering border.
+    "color": "#b8e8ff",
+    "rimColor": "#dde4ea",
+
+    // Overall opacity. Scales everything at once; 0 is invisible.
+    "intensity": 1.0,
+
+    // How fast the smoke churns and the shimmer travels. 0 freezes both.
+    "speed": 0.35,
+
+    // Smoke banked against the inside of the card edge.
+    "veilStrength": 0.5,
+
+    // Light haze across the whole card face. Keep low so the art stays readable.
+    "hazeStrength": 0.1,
+
+    // Brightness and thickness of the shimmering border.
+    // rimWidth is a fraction of card height.
+    "rimStrength": 1.0,
+    "rimWidth": 0.018,
+
+    // How far the edge smoke reaches inward, and the border's corner rounding.
+    // Both are fractions of card height.
+    "edgeDepth": 0.16,
+    "cornerRadius": 0.05,
+
+    // Softens the smoke's edges. Roughly a blur radius as a fraction of card
+    // height, so 0.003 is about 1px on a standard card. 0 disables the blur.
+    "blur": 0.003,
+
+    // Draw the overlay beneath the energy/star cost gems so costs stay crisp.
+    "drawUnderCost": true,
+
+    // Replace the game's cyan highlight on Ethereal cards with highlightColor.
+    // Cards showing the red (cannot play) or gold highlight always keep the
+    // game's own colour, since those carry information you need.
+    "recolorHighlight": true,
+    "highlightColor": "#b9c6d0",
+
+    // Fade-in time, in seconds, when a card becomes Ethereal.
+    "fadeInSeconds": 0.35
+}
