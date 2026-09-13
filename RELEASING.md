@@ -29,13 +29,13 @@ against the Skada Damage Meter archive.
 
 ## Publish to Nexus Mods
 
-The game lives at <https://www.nexusmods.com/slaythespire2>. Uploading needs a signed-in Nexus account, so
-it is a manual step.
+The game lives at <https://www.nexusmods.com/slaythespire2>. Uploading needs a signed-in Nexus
+account, so it is a manual step.
 
 1. Log in, go to the Slay the Spire 2 page → **Upload mod**.
 2. Name `Ethereal Glow`, category something like *User Interface* / *Visuals*.
 3. Fill in the description (draft below), tick that it works with Vortex, and add a screenshot
-   or two — the in-hand shot showing several cards is the one that sells it.
+   or two — an in-hand shot showing several cards is the one that sells it.
 4. Under **Files**, upload `dist/EtherealGlow-<version>.zip` as a *Main file*, with the version
    matching `version.txt`.
 5. Publish. Friends can then hit **Mod Manager Download** and Vortex does the rest.
