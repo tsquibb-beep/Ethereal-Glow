@@ -11,6 +11,7 @@
     "edgeDepth": 0.16,
     "cornerRadius": 0.05,
     "blur": 0.003,
+    "drawUnderCost": true,
     "recolorHighlight": true,
     "highlightColor": "#b9c6d0",
     "fadeInSeconds": 0.35

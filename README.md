@@ -35,6 +35,7 @@ overwrites an existing config.
 | `rimWidth` | `0.018` | Border thickness, as a fraction of card height. |
 | `edgeDepth` | `0.16` | How far the edge smoke reaches inward, as a fraction of card height. |
 | `cornerRadius` | `0.05` | Corner rounding of the border, as a fraction of card height. |
+| `drawUnderCost` | `true` | Draw the overlay below the energy/star cost gems so the costs stay crisp. |
 | `recolorHighlight` | `true` | Replace the game's cyan card highlight with `highlightColor` on Ethereal cards. |
 | `highlightColor` | `"#b9c6d0"` | Colour replacing that cyan. |
 | `blur` | `0.003` | Softens the smoke's edges, as a fraction of card height (~1px on a standard card). `0` disables it. |
@@ -63,10 +64,11 @@ of `NCard.Body`, so this mod follows that pattern rather than inventing its own.
   contrast push so the wisps feather rather than cut hard, plus a shimmering rim tracing a
   rounded-rectangle SDF around the silhouette. No texture or `.pck` assets, so
   nothing breaks when Mega Crit moves art around.
-- **Draw order** — the overlay is appended as the *last* child of `NCard.Body` so it draws
-  above the card art. The game's own rarity glows sit at index 1, which is *behind* the art:
-  fine for a halo that only shows outside the card, useless for an overlay. The node is also
-  anchored to the card body's full rect, so it never spills onto adjacent tooltips.
+- **Draw order** — the overlay is added to `NCard.Body` above the card art, then slid down to
+  the cost gems' index so the energy and star costs are not hazed over. The game's own rarity
+  glows sit at index 1, which is *behind* the art: fine for a halo that only shows outside the
+  card, useless for an overlay. The overlay's rect is measured from `%Frame` rather than
+  assumed, so it never spills onto adjacent tooltips.
 - **The card highlight** — the cyan outline the game draws around playable cards is its own
   `NCardHighlight`, coloured in `NHandCardHolder.UpdateCard`. A postfix there repaints it for
   Ethereal cards. Only the plain cyan is replaced: the red (cannot play) and gold states carry

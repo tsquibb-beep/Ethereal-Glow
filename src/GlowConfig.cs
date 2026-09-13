@@ -58,6 +58,13 @@ internal sealed class GlowConfig
     [JsonPropertyName("cornerRadius")]
     public float CornerRadius { get; set; } = 0.05f;
 
+    /// <summary>
+    /// Draw the overlay below the card's energy and star cost gems, so the costs stay crisp.
+    /// Ignored if the card art turns out to be drawn after the gems.
+    /// </summary>
+    [JsonPropertyName("drawUnderCost")]
+    public bool DrawUnderCost { get; set; } = true;
+
     /// <summary>Replace the game's cyan card highlight with <see cref="HighlightColorHex"/>.</summary>
     [JsonPropertyName("recolorHighlight")]
     public bool RecolorHighlight { get; set; } = true;

@@ -29,6 +29,9 @@ internal static class EtherealGlowController
     /// <summary>One-shot diagnostic: makes an invisible overlay debuggable from the game log.</summary>
     private static bool _loggedAttach;
 
+    /// <summary>One-shot diagnostic for the draw-order fix.</summary>
+    private static bool _loggedOrder;
+
     /// <summary>
     /// Re-evaluates whether <paramref name="card"/> should be wearing a halo. Cheap enough to
     /// call from every visual refresh; creates and destroys nodes only on an actual change.
@@ -156,13 +159,13 @@ internal static class EtherealGlowController
         ColorRect glow = SmokyGlowVisual.Create(config);
         SyncRect(card, body, glow);
 
-        // Appended last, so it draws above the card art. The game's own rarity glows sit at
-        // index 1 instead, which is *behind* the art - fine for a halo that only shows outside
-        // the card silhouette, useless for an overlay.
+        // Appended last for now, so it draws above the card art. The game's own rarity glows
+        // sit at index 1 instead, which is *behind* the art - fine for a halo that only shows
+        // outside the card silhouette, useless for an overlay.
         body.AddChildSafely(glow);
 
-        // AddChildSafely may defer, and Control layout may not have settled yet, so re-sync
-        // and start the tween once the node is actually in the tree.
+        // AddChildSafely may defer, and Control layout may not have settled yet, so re-sync,
+        // fix the draw order and start the tween once the node is actually in the tree.
         Callable.From(() =>
         {
             if (!GodotObject.IsInstanceValid(glow) || !glow.IsInsideTree() || !GodotObject.IsInstanceValid(card))
@@ -171,10 +174,64 @@ internal static class EtherealGlowController
             }
 
             SyncRect(card, card.Body, glow);
+            SinkBelowCost(card, card.Body, glow);
             SmokyGlowVisual.FadeIn(glow, config);
         }).CallDeferred();
 
         return glow;
+    }
+
+    /// <summary>
+    /// Slides the overlay below the cost gems in draw order, so the energy and star costs stay
+    /// crisp instead of being hazed over.
+    ///
+    /// The gems are ordinary nodes inside Body, drawn before an appended child. Moving the
+    /// overlay to the gem's index puts the gem (and every sibling after it) on top. This is
+    /// only safe if the card art sits *before* the gem: otherwise the same move would bury the
+    /// overlay behind the art, so in that case the overlay is left where it is.
+    /// </summary>
+    private static void SinkBelowCost(NCard card, Control body, ColorRect glow)
+    {
+        if (!GlowConfig.Current.DrawUnderCost)
+        {
+            return;
+        }
+
+        int costIndex = IndexOfBodyChildContaining(body, card.GetNodeOrNull<Node>("%EnergyIcon"));
+        int starIndex = IndexOfBodyChildContaining(body, card.GetNodeOrNull<Node>("%StarIcon"));
+        if (starIndex >= 0 && (costIndex < 0 || starIndex < costIndex))
+        {
+            costIndex = starIndex;
+        }
+
+        int artIndex = IndexOfBodyChildContaining(body, card.GetNodeOrNull<Node>("%Frame"));
+        bool canSink = costIndex >= 0 && artIndex >= 0 && artIndex < costIndex;
+
+        if (canSink && glow.GetIndex() != costIndex)
+        {
+            body.MoveChildSafely(glow, costIndex);
+        }
+
+        if (!_loggedOrder)
+        {
+            _loggedOrder = true;
+            Log.Info($"[EtherealGlow] Draw order: art={artIndex}, cost={costIndex}, children={body.GetChildCount()}, sank={canSink}, glow now at {glow.GetIndex()}.");
+        }
+    }
+
+    /// <summary>
+    /// Walks up from <paramref name="node"/> to whichever direct child of <paramref name="body"/>
+    /// contains it, and returns that child's index. -1 if the node is not under Body at all.
+    /// </summary>
+    private static int IndexOfBodyChildContaining(Control body, Node? node)
+    {
+        Node? current = node;
+        while (current != null && GodotObject.IsInstanceValid(current) && current.GetParent() != body)
+        {
+            current = current.GetParent();
+        }
+
+        return current != null && GodotObject.IsInstanceValid(current) ? current.GetIndex() : -1;
     }
 
     /// <summary>
