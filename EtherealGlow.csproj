@@ -12,6 +12,10 @@
     <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
     <GenerateDependencyFile>false</GenerateDependencyFile>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <!-- Keep the build machine out of the shipped binary: without PathMap the DLL's debug
+         directory records the full local path to the PDB, including the user's name. -->
+    <Deterministic>true</Deterministic>
+    <PathMap>$(MSBuildProjectDirectory)=/EtherealGlow</PathMap>
   </PropertyGroup>
 
   <!-- Override with -p:Sts2Dir=... if the game lives somewhere else. -->
