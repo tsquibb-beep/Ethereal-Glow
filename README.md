@@ -105,6 +105,27 @@ DOTNET_ROOT="$HOME/.dotnet" ilspycmd "<game>/data_sts2_windows_x86_64/sts2.dll" 
 
 `data_sts2_windows_x86_64/sts2.xml` also ships 5 MB of XML doc comments for the public API.
 
+### Release packaging
+
+`./package.sh` produces `dist/EtherealGlow-<version>.zip`, wrapping everything in a single
+`EtherealGlow/` folder:
+
+```
+EtherealGlow/EtherealGlow.dll
+EtherealGlow/EtherealGlow.json
+EtherealGlow/EtherealGlow.config.jsonc
+EtherealGlow/README.md
+EtherealGlow/LICENSE
+```
+
+That layout is not arbitrary. The Slay the Spire 2 Vortex extension installs a mod containing a
+`.dll` into `mods/<folder named after the dll>`, and the game's own loader looks for
+`mods/<id>/<id>.dll`. The same archive therefore works through Vortex and for anyone extracting
+it by hand. **Only `.zip` is supported** by the Vortex extension — do not ship `.7z` or `.rar`.
+
+The script refuses to build if `EtherealGlow.json` and `version.txt` disagree, since the
+manifest version is what players see in the game's mod list.
+
 ## Licence
 
 MIT — see [LICENSE](LICENSE).
