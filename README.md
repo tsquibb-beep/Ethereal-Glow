@@ -95,6 +95,10 @@ DOTNET_ROOT="$HOME/.dotnet" ilspycmd "<game>/data_sts2_windows_x86_64/sts2.dll" 
 
 `data_sts2_windows_x86_64/sts2.xml` also ships 5 MB of XML doc comments for the public API.
 
+## Licence
+
+MIT — see [LICENSE](LICENSE).
+
 ## Compatibility
 
 Built and verified against **StS2 v0.107.1**. The game is in Early Access and mods break
