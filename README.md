@@ -132,5 +132,5 @@ MIT — see [LICENSE](LICENSE).
 
 ## Compatibility
 
-Built and verified against **StS2 v0.107.1**. The game is in Early Access and mods break
+Built and verified against **StS2 v0.111.1**. The game is in Early Access and mods break
 often; `min_game_version` in the manifest is set accordingly.
